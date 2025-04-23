@@ -1,0 +1,54 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+	<Version>0.2.3.0</Version>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
+		<PackageReference Include="Markdig" Version="0.40.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.4" />
+		<PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.45.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\PERI.SK.Application\PERI.SK.Application.csproj" />
+		<ProjectReference Include="..\PERI.SK.Infrastructure.AzureOpenAi\PERI.SK.Infrastructure.AzureOpenAi.csproj" />
+		<ProjectReference Include="..\PERI.SK.Infrastructure.DeepSeek\PERI.SK.Infrastructure.DeepSeek.csproj" />
+		<ProjectReference Include="..\PERI.SK.Infrastructure.OpenAi\PERI.SK.Infrastructure.OpenAi.csproj" />
+		<ProjectReference Include="..\PERI.SK.Infrastructure.Data\PERI.SK.Infrastructure.Data.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="npm_packages\" />
+	</ItemGroup>
+
+	<Target Name="PreBuild" BeforeTargets="Build">
+		<Exec Command="npm install" WorkingDirectory="$(ProjectDir)npm_packages" />
+	</Target>
+
+	<Target Name="BuildNpmPackages" AfterTargets="PreBuild">
+		<Exec Command="npm run build" WorkingDirectory="$(ProjectDir)npm_packages" />
+	</Target>
+
+	<Target Name="CleanNodeModules" AfterTargets="BuildNpmPackages">
+		<RemoveDir Directories="$(ProjectDir)npm_packages\node_modules" />
+	</Target>
+
+	<Target Name="CopyNpmPackages" AfterTargets="CleanNodeModules">
+		<ItemGroup>
+			<BlazorDistFiles Include="$(ProjectDir)npm_packages/dist/**/*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(BlazorDistFiles)" DestinationFolder="$(BaseIntermediateOutputPath)dist/npm_packages/%(RecursiveDir)" SkipUnchangedFiles="true" />
+	</Target>
+
+	<ItemGroup>
+		<None Remove="npm_packages/**" />
+		<None Include="npm_packages/**" CopyToPublishDirectory="PreserveNewest" />
+	</ItemGroup>
+
+
+</Project>

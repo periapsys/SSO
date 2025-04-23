@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.4" />
+		<PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.45.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\PERI.SK.Application\PERI.SK.Application.csproj" />
+	  <ProjectReference Include="..\PERI.SK.Infrastructure.AzureOpenAi\PERI.SK.Infrastructure.AzureOpenAi.csproj" />
+	  <ProjectReference Include="..\PERI.SK.Infrastructure.OpenAi\PERI.SK.Infrastructure.OpenAi.csproj" />
+	  <ProjectReference Include="..\PERI.SK.Infrastructure.Data\PERI.SK.Infrastructure.Data.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="appsettings.Development.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="appsettings.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+</Project>

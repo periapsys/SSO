@@ -1,0 +1,25 @@
+{
+    "name": "npm_packages",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "build": "npm run clean && npm run copy-assets",
+        "clean": "rimraf dist && mkdirp dist",
+        "copy-assets": "copyfiles -u 1 node_modules/bootstrap/dist/**/* node_modules/@popperjs/core/dist/umd/popper.min.js node_modules/jquery/dist/jquery.js node_modules/swiper/swiper.min.css node_modules/swiper/swiper-bundle.min.js dist/",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "bootstrap": "^5.3.5",
+        "jquery": "^3.7.1",
+        "swiper": "^11.2.6"
+    },
+    "devDependencies": {
+        "copyfiles": "^2.4.1",
+        "mkdirp": "^3.0.1",
+        "rimraf": "^6.0.1"
+    }
+}
