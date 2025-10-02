@@ -21,16 +21,16 @@ jobs:
       - name: Setup JDK 17
         uses: actions/setup-java@v2
         with:
-          distribution: 'temurin'   # Required input (e.g. temurin, zulu, microsoft, adopt)
+          distribution: 'temurin'   # JDK distribution (temurin, zulu, microsoft, adopt)
           java-version: '17'
 
       - name: Analyze with SonarCloud
         uses: SonarSource/sonarcloud-github-action@v2
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Ensure this secret exists in your GitHub repo
         with:
           args: |
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION_KEY }}
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}   # Use secret for project key
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION_KEY }}   # Use secret for organization key
             -Dsonar.exclusions=.github/**  # Exclude the .github folder from analysis
-          projectBaseDir: .
+          projectBaseDir: .  # Run the analysis from the root directory (you can adjust if needed)
