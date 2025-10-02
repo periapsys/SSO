@@ -32,4 +32,5 @@ jobs:
           args: |
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION_KEY }}
+            -Dsonar.exclusions=.github/**  # Exclude the .github folder from analysis
           projectBaseDir: .
