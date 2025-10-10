@@ -36,11 +36,17 @@ namespace PERI.SK.Infrastructure
 
             var pattern = @"```sql(.*?)```";
             var match = Regex.Match(request.ToString(), pattern, RegexOptions.Singleline);
+            string data;
 
-            if (match.Success)
+            try
             {
-                var sql = match.Groups[1].Value;
-                var data = await sqlQueries.GetData(connectionString!, sql.Trim().Replace("\n", " "));
+                if (match.Success)
+                {
+                    var sql = match.Groups[1].Value;
+                    data = await sqlQueries.GetData(connectionString!, sql.Trim().Replace("\n", " "));
+                }
+                else
+                    data = await sqlQueries.GetData(connectionString!, request);
 
                 if (string.IsNullOrEmpty(data))
                     return await GetResponse("no_result");
@@ -52,7 +58,7 @@ namespace PERI.SK.Infrastructure
 
                 return request;
             }
-            else
+            catch
             {
                 return "Unable to process your query.";
             }
