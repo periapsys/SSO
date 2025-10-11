@@ -129,4 +129,4 @@ Please visit [this link](https://learn.microsoft.com/en-us/aspnet/core/tutorials
 Please visit [wiki page](https://github.com/periapsys/SSO/wiki)
 
 ## Misc
-[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=periapsys_SSO)](https://sonarcloud.io/summary/new_code?id=periapsys_SSO)
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=periapsys_Pulsar)](https://sonarcloud.io/summary/new_code?id=periapsys_Pulsar)
