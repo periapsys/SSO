@@ -185,7 +185,7 @@ app.UseHealthChecks("/hc", new HealthCheckOptions()
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 
-string[] prefixes = { "/swagger", "/api", "/odata", "/hangfire" };
+string[] prefixes = { "/swagger", "/api", "/odata", "/hangfire", "/.well-known" };
 
 app.MapWhen(r => !prefixes.Any(p => r.Request.Path.Value.StartsWith(p)), builder =>
 {
