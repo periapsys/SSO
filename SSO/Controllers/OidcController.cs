@@ -101,7 +101,7 @@ namespace SSO.Controllers
                 sub = userId,
                 name = givenName,
                 iss = issuer,
-                aud = "SSO",
+                aud = "SSO",    // TODO: To check
                 exp = new DateTimeOffset(res.Expires).ToUnixTimeSeconds(),
                 iat = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
             }));
