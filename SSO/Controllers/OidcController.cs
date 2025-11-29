@@ -1,8 +1,10 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using SSO.Business.Authentication.Queries;
 using System.IdentityModel.Tokens.Jwt;
-using System.Text.Json;
+using System.Security.Claims;
+using System.Security.Cryptography;
 
 namespace SSO.Controllers
 {
@@ -10,26 +12,59 @@ namespace SSO.Controllers
     public class OidcController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly RsaSecurityKey _rsaKey;
 
         public OidcController(IMediator mediator)
         {
             _mediator = mediator;
+
+            // Load RSA private key from PEM file
+            var pemFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "private_key.pem");
+            var privateKeyText = System.IO.File.ReadAllText(pemFilePath);
+
+            RSA rsa = RSA.Create();
+            rsa.ImportFromPem(privateKeyText.ToCharArray());
+
+            _rsaKey = new RsaSecurityKey(rsa)
+            {
+                KeyId = Guid.NewGuid().ToString() // Generate a unique KeyId
+            };
         }
 
         [HttpGet]
         [Route(".well-known/openid-configuration")]
         public IActionResult Discovery()
         {
+            var issuer = $"{Request.Scheme}://{Request.Host}";
+
             return Ok(new
             {
-                issuer = $"{Request.Scheme}://{Request.Host}",
-                authorization_endpoint = $"{Request.Scheme}://{Request.Host}/connect/authorize",
-                token_endpoint = $"{Request.Scheme}://{Request.Host}/connect/token",
-                userinfo_endpoint = $"{Request.Scheme}://{Request.Host}/connect/userinfo",
+                issuer,
+                authorization_endpoint = $"{issuer}/connect/authorize",
+                token_endpoint = $"{issuer}/connect/token",
+                userinfo_endpoint = $"{issuer}/connect/userinfo",
+                jwks_uri = $"{issuer}/.well-known/jwks.json",
                 response_types_supported = new[] { "code" },
                 subject_types_supported = new[] { "public" },
-                id_token_signing_alg_values_supported = new[] { "none" }
+                id_token_signing_alg_values_supported = new[] { "RS256" }
             });
+        }
+
+        [HttpGet]
+        [Route(".well-known/jwks.json")]
+        public IActionResult Jwks()
+        {
+            var parameters = _rsaKey.Rsa.ExportParameters(false);
+            var key = new
+            {
+                kty = "RSA",
+                use = "sig",
+                kid = _rsaKey.KeyId,
+                e = Base64UrlEncoder.Encode(parameters.Exponent),
+                n = Base64UrlEncoder.Encode(parameters.Modulus)
+            };
+
+            return Ok(new { keys = new[] { key } });
         }
 
         [HttpGet("connect/authorize")]
@@ -69,9 +104,7 @@ namespace SSO.Controllers
             }
             catch (UnauthorizedAccessException)
             {
-                // Delete cookie
                 Response.Cookies.Delete("token");
-
                 return Redirect($"{Request.Scheme}://{Request.Host}/login?appId={clientId}&callbackUrl={redirectUri}");
             }
         }
@@ -84,58 +117,56 @@ namespace SSO.Controllers
 
             var res = await _mediator.Send(new GetAccessTokenQuery { RequestToken = Guid.Parse(code!) });
 
-            // Parse the access token once
-            var token = new JwtSecurityTokenHandler().ReadJwtToken(res.AccessToken);
-            var givenName = token.Claims.FirstOrDefault(c => c.Type == "given_name")?.Value;
-            var userId = token.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var accessToken = res.AccessToken;
 
-            // Inline Base64Url encode helper (no static)
-            string Base64UrlEncode(string s) =>
-                Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(s))
-                    .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+            var jwt = tokenHandler.ReadJwtToken(accessToken);
+            var givenName = jwt.Claims.FirstOrDefault(c => c.Type == "given_name")?.Value ?? "";
+            var userId = jwt.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value ?? "";
 
-            // Build unsigned ID token inline
-            var header = Base64UrlEncode("{\"alg\":\"none\"}");
-            var payload = Base64UrlEncode(JsonSerializer.Serialize(new
+            // ID token claims
+            var claims = new[]
             {
-                sub = userId,
-                name = givenName,
-                iss = issuer,
-                aud = "SSO",    // TODO: To check
-                exp = new DateTimeOffset(res.Expires).ToUnixTimeSeconds(),
-                iat = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
-            }));
-            var idToken = $"{header}.{payload}.";
+                new Claim(JwtRegisteredClaimNames.Sub, userId),
+                new Claim("name", givenName),
+                new Claim(JwtRegisteredClaimNames.Iss, issuer),
+                new Claim(JwtRegisteredClaimNames.Aud, "SSO"), // Must match client_id in EasyAuth
+                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
+            };
+
+            // Sign ID token using RS256
+            var idToken = new JwtSecurityToken(
+                issuer: issuer,
+                audience: "SSO",
+                claims: claims,
+                notBefore: DateTime.UtcNow,
+                expires: res.Expires,
+                signingCredentials: new SigningCredentials(_rsaKey, SecurityAlgorithms.RsaSha256)
+            );
 
             return new JsonResult(new
             {
-                access_token = res.AccessToken,
+                access_token = accessToken,
                 token_type = "Bearer",
                 expires_in = (int)(res.Expires - DateTime.UtcNow).TotalSeconds,
-                id_token = idToken
+                id_token = tokenHandler.WriteToken(idToken)
             });
         }
 
         [HttpGet("connect/userinfo")]
         public IActionResult UserInfo()
         {
-            // Get the raw access token from the Authorization header
             var accessToken = HttpContext.Request.Headers["Authorization"]
                 .FirstOrDefault()?.Split(" ").Last();
 
             if (string.IsNullOrEmpty(accessToken))
                 return Unauthorized("Access token missing");
 
-            // Optional: parse JWT to extract claims
             var token = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
             var sub = token.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
             var name = token.Claims.FirstOrDefault(c => c.Type == "given_name")?.Value;
 
-            return Ok(new
-            {
-                sub,
-                name
-            });
+            return Ok(new { sub, name });
         }
     }
 }
