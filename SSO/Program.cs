@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.OData;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using OwaspHeaders.Core.Enums;
 using OwaspHeaders.Core.Extensions;
 using OwaspHeaders.Core.Models;
@@ -134,19 +134,9 @@ builder.Services.AddSwaggerGen(x =>
         Scheme = "Bearer"
     });
 
-    x.AddSecurityRequirement(new OpenApiSecurityRequirement
+    x.AddSecurityRequirement((document) => new OpenApiSecurityRequirement()
     {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
 });
 
@@ -185,7 +175,7 @@ app.UseHealthChecks("/hc", new HealthCheckOptions()
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
 
-string[] prefixes = { "/swagger", "/api", "/odata", "/hangfire", "/.well-known" };
+string[] prefixes = { "/swagger", "/api", "/odata", "/hangfire", "/connect", "/.well-known" };
 
 app.MapWhen(r => !prefixes.Any(p => r.Request.Path.Value.StartsWith(p)), builder =>
 {
@@ -199,7 +189,11 @@ app.MapWhen(r => !prefixes.Any(p => r.Request.Path.Value.StartsWith(p)), builder
     });
 });
 
-app.UseSwagger();
+app.UseSwagger(options =>
+{
+    options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_1;
+});
+
 app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint("/swagger/Client/swagger.json", "Client");

@@ -1,16 +1,14 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SSO.Business.Authentication.Queries;
-using System.Security.Cryptography;
-using System.Web;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text.Json;
 
 namespace SSO.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
     public class OidcController : ControllerBase
     {
-
         private readonly IMediator _mediator;
 
         public OidcController(IMediator mediator)
@@ -18,164 +16,125 @@ namespace SSO.Controllers
             _mediator = mediator;
         }
 
-        /// <summary>
-        /// Returns the OpenID Connect discovery document containing configuration information for clients to interact
-        /// with the authorization server.
-        /// </summary>
-        /// <remarks>The returned discovery document follows the OpenID Connect standard and includes
-        /// endpoint URLs based on the current request's scheme and host. Clients use this document to dynamically
-        /// configure themselves for authentication and authorization flows.</remarks>
-        /// <returns>An <see cref="IActionResult"/> containing a JSON object that describes the OpenID Connect endpoints,
-        /// supported scopes, response types, and other metadata required for client integration.</returns>
-        [HttpGet("~/.well-known/openid-configuration")]
-        public IActionResult GetOpenIdConfiguration()
+        [HttpGet]
+        [Route(".well-known/openid-configuration")]
+        public IActionResult Discovery()
         {
-            var issuer = $"{Request.Scheme}://{Request.Host}";
-            var configuration = new
+            return Ok(new
             {
-                issuer = issuer,
-                authorization_endpoint = $"{issuer}/api/oidc/authorize",
-                token_endpoint = $"{issuer}/api/oidc/token",
-                userinfo_endpoint = $"{issuer}/api/oidc/userinfo",
-                jwks_uri = $"{issuer}/.well-known/jwks.json",
-                response_types_supported = new[] { "code", "token", "id_token", "code token", "code id_token", "token id_token", "code token id_token" },
+                issuer = $"{Request.Scheme}://{Request.Host}",
+                authorization_endpoint = $"{Request.Scheme}://{Request.Host}/connect/authorize",
+                token_endpoint = $"{Request.Scheme}://{Request.Host}/connect/token",
+                userinfo_endpoint = $"{Request.Scheme}://{Request.Host}/connect/userinfo",
+                response_types_supported = new[] { "code" },
                 subject_types_supported = new[] { "public" },
-                id_token_signing_alg_values_supported = new[] { "RS256" },
-                scopes_supported = new[] { "openid", "profile", "email", "offline_access" },
-                token_endpoint_auth_methods_supported = new[] { "client_secret_basic", "client_secret_post" },
-                claims_supported = new[] { "sub", "name", "preferred_username", "email", "realm", "role" }
-            };
-            return Ok(configuration);
+                id_token_signing_alg_values_supported = new[] { "none" }
+            });
         }
 
-        /// <summary>
-        /// Initiates the OAuth 2.0 authorization flow by validating the client and redirecting the user to the
-        /// specified URI with an authorization code or error response.
-        /// </summary>
-        /// <remarks>This endpoint is typically used as part of the OAuth 2.0 authorization code grant
-        /// flow. The caller should ensure that all parameters meet the requirements of the authorization server and
-        /// that the redirect URI is properly registered.</remarks>
-        /// <param name="client_id">The unique identifier of the client application requesting authorization. Must be registered with the
-        /// authorization server.</param>
-        /// <param name="redirect_uri">The URI to which the authorization response will be sent. Must match a registered redirect URI for the
-        /// client.</param>
-        /// <param name="response_type">The type of response desired from the authorization endpoint. Typically set to "code" for authorization code
-        /// flow.</param>
-        /// <param name="state">An optional value used to maintain state between the request and callback. If provided, it will be included
-        /// in the response.</param>
-        /// <returns>An <see cref="IActionResult"/> that redirects the user to the specified <paramref name="redirect_uri"/> with
-        /// the authorization response parameters.</returns>
-        /// <exception cref="NotImplementedException">Thrown in all cases as the method is not yet implemented.</exception>
-        [HttpGet("authorize")]
-        public async Task<IActionResult> Authorize([FromQuery] string client_id, [FromQuery] string redirect_uri,
-        [FromQuery] string response_type = "code", [FromQuery] string? state = null)
+        [HttpGet("connect/authorize")]
+        public async Task<IActionResult> Authorize()
         {
+            var clientIdRaw = Request.Query["client_id"].ToString();
+
+            if (string.IsNullOrWhiteSpace(clientIdRaw) || !Guid.TryParse(clientIdRaw, out var clientId))
+            {
+                return BadRequest(new
+                {
+                    error = "invalid_client",
+                    error_description = "client_id must be a valid GUID"
+                });
+            }
+
+            var redirectUri = Request.Query["redirect_uri"].ToString();
+            var state = Request.Query["state"].ToString();
+
             try
             {
-                // Spec parameters (who is calling + where they want to go)
-                if (string.IsNullOrWhiteSpace(client_id) ||
-                    string.IsNullOrWhiteSpace(redirect_uri) ||
-                    response_type != "code")
-                {
-                    return BadRequest(new { error = "invalid_request" });
-                }
+                await _mediator.Send(new InitLoginQuery { ApplicationId = clientId, CallbackUrl = redirectUri });
 
-                await _mediator.Send(new InitLoginQuery { ApplicationId = new Guid(client_id), CallbackUrl = redirect_uri });
-
-                Response.Cookies.Append("appId", client_id, new CookieOptions { Expires = DateTime.Now.AddDays(1), HttpOnly = false });
+                Response.Cookies.Append("appId", clientId.ToString(), new CookieOptions { Expires = DateTime.Now.AddDays(1), HttpOnly = false });
 
                 if (Request.Cookies["token"] != null)
                 {
-                    var token = await _mediator.Send(new SwitchAppQuery { Token = Request.Cookies["token"], ApplicationId = new Guid(client_id) });
+                    var token = await _mediator.Send(new SwitchAppQuery { Token = Request.Cookies["token"], ApplicationId = clientId });
 
                     Response.Cookies.Append("token", token.AccessToken, new CookieOptions { Expires = token.Expires, HttpOnly = false });
 
-                    var callbackUri = new Uri(redirect_uri);
-                    var uriBuilder = new UriBuilder(callbackUri);
-                    var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-
-                    query["code"] = token.Id.ToString();
-
-                    if (!string.IsNullOrEmpty(state))
-                        query["state"] = state;
-
-                    uriBuilder.Query = query.ToString();
-
-                    return Redirect(uriBuilder.ToString());
+                    var redirect = $"{redirectUri}?code={token.Id}&state={state}";
+                    return Redirect(redirect);
                 }
 
-                return Redirect($"{Request.Scheme}://{Request.Host}/login?appId={client_id}&callbackUrl={redirect_uri}");
+                return Redirect($"{Request.Scheme}://{Request.Host}/login?appId={clientId}&callbackUrl={redirectUri}");
             }
             catch (UnauthorizedAccessException)
             {
-                return Redirect($"{Request.Scheme}://{Request.Host}/login?appId={client_id}&callbackUrl={redirect_uri}");
+                // Delete cookie
+                Response.Cookies.Delete("token");
+
+                return Redirect($"{Request.Scheme}://{Request.Host}/login?appId={clientId}&callbackUrl={redirectUri}");
             }
         }
 
-        /// <summary>
-        /// Handles an OAuth 2.0 token request and returns an access token response based on the provided authorization
-        /// code and client credentials.
-        /// </summary>
-        /// <remarks>This endpoint implements the OAuth 2.0 authorization code grant flow. Ensure that all
-        /// parameters are provided and valid to successfully obtain an access token. The response format follows OAuth
-        /// 2.0 specifications.</remarks>
-        /// <param name="grant_type">The OAuth 2.0 grant type for the token request. Must be set to "authorization_code" for this endpoint.</param>
-        /// <param name="code">The authorization code received from the authorization endpoint. Must be a valid, non-empty string
-        /// representing a GUID.</param>
-        /// <param name="redirect_uri">The redirect URI associated with the authorization code. Must match the URI used during the authorization
-        /// request.</param>
-        /// <param name="client_id">The client identifier registered with the authorization server. Used to authenticate the client making the
-        /// request.</param>
-        /// <param name="client_secret">The client secret associated with the client identifier. Used to verify the client's identity.</param>
-        /// <returns>An <see cref="IActionResult"/> containing the access token response if the request is valid; otherwise, an
-        /// error response indicating the reason for failure.</returns>
-        [HttpPost("token")]
-        public async Task<IActionResult> Token([FromForm] string grant_type,
-                                       [FromForm] string code,
-                                       [FromForm] string redirect_uri,
-                                       [FromForm] string client_id,
-                                       [FromForm] string client_secret)
+        [HttpPost("connect/token")]
+        public async Task<IActionResult> Token()
         {
-            var res = await _mediator.Send(new GetAccessTokenQuery
-            {
-                RequestToken = new Guid(code)
-            });
+            var code = Request.Form["code"];
+            var issuer = $"{Request.Scheme}://{Request.Host}";
 
-            return Ok(res);
+            var res = await _mediator.Send(new GetAccessTokenQuery { RequestToken = Guid.Parse(code!) });
+
+            // Parse the access token once
+            var token = new JwtSecurityTokenHandler().ReadJwtToken(res.AccessToken);
+            var givenName = token.Claims.FirstOrDefault(c => c.Type == "given_name")?.Value;
+            var userId = token.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
+
+            // Inline Base64Url encode helper (no static)
+            string Base64UrlEncode(string s) =>
+                Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(s))
+                    .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
+            // Build unsigned ID token inline
+            var header = Base64UrlEncode("{\"alg\":\"none\"}");
+            var payload = Base64UrlEncode(JsonSerializer.Serialize(new
+            {
+                sub = userId,
+                name = givenName,
+                iss = issuer,
+                aud = "SSO",    // TODO: To check
+                exp = new DateTimeOffset(res.Expires).ToUnixTimeSeconds(),
+                iat = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+            }));
+            var idToken = $"{header}.{payload}.";
+
+            return new JsonResult(new
+            {
+                access_token = res.AccessToken,
+                token_type = "Bearer",
+                expires_in = (int)(res.Expires - DateTime.UtcNow).TotalSeconds,
+                id_token = idToken
+            });
         }
 
-        /// <summary>
-        /// Retrieves the JSON Web Key Set (JWKS) containing the public RSA key used for token signature validation.
-        /// </summary>
-        /// <remarks>The JWKS is served at the standard OpenID Connect discovery endpoint and can be
-        /// consumed by clients or identity providers to validate tokens issued by this application. The key set
-        /// includes the modulus and exponent of the RSA public key, encoded using base64url as specified by the JWKS
-        /// standard.</remarks>
-        /// <returns>An <see cref="IActionResult"/> containing the JWKS in JSON format. The response includes the public RSA key
-        /// parameters required for verifying JWT signatures.</returns>
-        [HttpGet("~/.well-known/jwks.json")]
-        public IActionResult GetJwks()
+        [HttpGet("connect/userinfo")]
+        public IActionResult UserInfo()
         {
-            var pem = System.IO.File.ReadAllText("public_key.pem");
-            var rsa = RSA.Create();
-            rsa.ImportFromPem(pem);
-            var p = rsa.ExportParameters(false);
+            // Get the raw access token from the Authorization header
+            var accessToken = HttpContext.Request.Headers["Authorization"]
+                .FirstOrDefault()?.Split(" ").Last();
 
-            var n = Convert.ToBase64String(p.Modulus).Replace("+", "-").Replace("/", "_").TrimEnd('=');
-            var e = Convert.ToBase64String(p.Exponent).Replace("+", "-").Replace("/", "_").TrimEnd('=');
+            if (string.IsNullOrEmpty(accessToken))
+                return Unauthorized("Access token missing");
+
+            // Optional: parse JWT to extract claims
+            var token = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+            var sub = token.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
+            var name = token.Claims.FirstOrDefault(c => c.Type == "given_name")?.Value;
 
             return Ok(new
             {
-                keys = new[] {
-                new {
-                    kty = "RSA",
-                    use = "sig",
-                    alg = "RS256",
-                    kid = "my-key-id",
-                    n,
-                    e
-                    }
-                }
+                sub,
+                name
             });
         }
     }
