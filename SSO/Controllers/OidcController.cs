@@ -25,10 +25,11 @@ namespace SSO.Controllers
             RSA rsa = RSA.Create();
             rsa.ImportFromPem(privateKeyText.ToCharArray());
 
-            _rsaKey = new RsaSecurityKey(rsa)
-            {
-                KeyId = Guid.NewGuid().ToString() // Generate a unique KeyId
-            };
+            // Stable KeyId based on public key hash
+            var pubKey = rsa.ExportRSAPublicKey();
+            var keyId = Base64UrlEncoder.Encode(SHA256.HashData(pubKey));
+
+            _rsaKey = new RsaSecurityKey(rsa) { KeyId = keyId };
         }
 
         [HttpGet]
@@ -71,7 +72,6 @@ namespace SSO.Controllers
         public async Task<IActionResult> Authorize()
         {
             var clientIdRaw = Request.Query["client_id"].ToString();
-
             if (string.IsNullOrWhiteSpace(clientIdRaw) || !Guid.TryParse(clientIdRaw, out var clientId))
             {
                 return BadRequest(new
@@ -83,40 +83,34 @@ namespace SSO.Controllers
 
             var redirectUri = Request.Query["redirect_uri"].ToString();
             var state = Request.Query["state"].ToString();
+            var nonce = Request.Query["nonce"].ToString(); // may be empty
 
-            try
+            await _mediator.Send(new InitLoginQuery { ApplicationId = clientId, CallbackUrl = redirectUri });
+
+            // Save appId and nonce in cookies for token endpoint
+            Response.Cookies.Append("appId", clientId.ToString(), new CookieOptions { Expires = DateTime.Now.AddDays(1), HttpOnly = false });
+            Response.Cookies.Append("oidc_nonce", nonce, new CookieOptions { Expires = DateTime.Now.AddMinutes(10), HttpOnly = true });
+
+            if (Request.Cookies["token"] != null)
             {
-                await _mediator.Send(new InitLoginQuery { ApplicationId = clientId, CallbackUrl = redirectUri });
+                var token = await _mediator.Send(new SwitchAppQuery { Token = Request.Cookies["token"], ApplicationId = clientId });
+                Response.Cookies.Append("token", token.AccessToken, new CookieOptions { Expires = token.Expires, HttpOnly = false });
 
-                Response.Cookies.Append("appId", clientId.ToString(), new CookieOptions { Expires = DateTime.Now.AddDays(1), HttpOnly = false });
-
-                if (Request.Cookies["token"] != null)
-                {
-                    var token = await _mediator.Send(new SwitchAppQuery { Token = Request.Cookies["token"], ApplicationId = clientId });
-
-                    Response.Cookies.Append("token", token.AccessToken, new CookieOptions { Expires = token.Expires, HttpOnly = false });
-
-                    var redirect = $"{redirectUri}?code={token.Id}&state={state}";
-                    return Redirect(redirect);
-                }
-
-                return Redirect($"{Request.Scheme}://{Request.Host}/login?appId={clientId}&callbackUrl={redirectUri}");
+                var redirect = $"{redirectUri}?code={token.Id}&state={state}";
+                return Redirect(redirect);
             }
-            catch (UnauthorizedAccessException)
-            {
-                Response.Cookies.Delete("token");
-                return Redirect($"{Request.Scheme}://{Request.Host}/login?appId={clientId}&callbackUrl={redirectUri}");
-            }
+
+            return Redirect($"{Request.Scheme}://{Request.Host}/login?appId={clientId}&callbackUrl={redirectUri}&state={state}");
         }
 
         [HttpPost("connect/token")]
         public async Task<IActionResult> Token()
         {
             var code = Request.Form["code"];
+            var clientId = Request.Form["client_id"].ToString();
             var issuer = $"{Request.Scheme}://{Request.Host}";
 
             var res = await _mediator.Send(new GetAccessTokenQuery { RequestToken = Guid.Parse(code!) });
-
             var tokenHandler = new JwtSecurityTokenHandler();
             var accessToken = res.AccessToken;
 
@@ -124,20 +118,24 @@ namespace SSO.Controllers
             var givenName = jwt.Claims.FirstOrDefault(c => c.Type == "given_name")?.Value ?? "";
             var userId = jwt.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value ?? "";
 
+            // Read nonce from cookie (may be empty)
+            var nonce = Request.Cookies["oidc_nonce"] ?? "";
+            Response.Cookies.Delete("oidc_nonce"); // single-use
+
             // ID token claims
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, userId),
                 new Claim("name", givenName),
                 new Claim(JwtRegisteredClaimNames.Iss, issuer),
-                new Claim(JwtRegisteredClaimNames.Aud, "SSO"), // Must match client_id in EasyAuth
-                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
+                new Claim(JwtRegisteredClaimNames.Aud, clientId),
+                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
+                new Claim(JwtRegisteredClaimNames.Nonce, nonce) // ✅ required by EasyAuth
             };
 
-            // Sign ID token using RS256
             var idToken = new JwtSecurityToken(
                 issuer: issuer,
-                audience: "SSO",
+                audience: clientId,
                 claims: claims,
                 notBefore: DateTime.UtcNow,
                 expires: res.Expires,
@@ -162,11 +160,29 @@ namespace SSO.Controllers
             if (string.IsNullOrEmpty(accessToken))
                 return Unauthorized("Access token missing");
 
-            var token = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
-            var sub = token.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
-            var name = token.Claims.FirstOrDefault(c => c.Type == "given_name")?.Value;
+            var handler = new JwtSecurityTokenHandler();
 
-            return Ok(new { sub, name });
+            try
+            {
+                var principal = handler.ValidateToken(accessToken, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = _rsaKey,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true
+                }, out _);
+
+                var token = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
+                var sub = token.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
+                var name = token.Claims.FirstOrDefault(c => c.Type == "given_name")?.Value;
+
+                return Ok(new { sub, name });
+            }
+            catch
+            {
+                return Unauthorized();
+            }
         }
     }
 }

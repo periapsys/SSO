@@ -71,7 +71,7 @@ export default {
 		if (Cookies.get('token')) {
 			var token = Cookies.get('token');
 
-			window.location.href = `${this.urlParams.get('callbackUrl')}?token=${token}`;
+            window.location.href = `${this.urlParams.get('callbackUrl')}?code=${token}&state=${this.urlParams.get('state')}`;
 		}
 	},
 	methods: {
@@ -85,7 +85,7 @@ export default {
 				}
 				else {
 					if (this.urlParams.get('callbackUrl')) {
-						window.location.href = `${this.urlParams.get('callbackUrl')}?token=${r.data.id}`;
+                        window.location.href = `${this.urlParams.get('callbackUrl')}?code=${r.data.id}&state=${this.urlParams.get('state')}`;
 					}
 				}
 			}, err => {
