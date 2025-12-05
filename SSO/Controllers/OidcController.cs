@@ -44,6 +44,7 @@ namespace SSO.Controllers
                 authorization_endpoint = $"{issuer}/connect/authorize",
                 token_endpoint = $"{issuer}/connect/token",
                 userinfo_endpoint = $"{issuer}/connect/userinfo",
+                end_session_endpoint = $"{issuer}/connect/endsession",
                 jwks_uri = $"{issuer}/.well-known/jwks.json",
                 response_types_supported = new[] { "code" },
                 subject_types_supported = new[] { "public" },
@@ -94,6 +95,7 @@ namespace SSO.Controllers
             if (Request.Cookies["token"] != null)
             {
                 var token = await _mediator.Send(new SwitchAppQuery { Token = Request.Cookies["token"], ApplicationId = clientId });
+                var token1 = await _mediator.Send(new GetAccessTokenQuery { RequestToken = token.Id });
                 Response.Cookies.Append("token", token.AccessToken, new CookieOptions { Expires = token.Expires, HttpOnly = false });
 
                 var redirect = $"{redirectUri}?code={token.Id}&state={state}";
@@ -183,6 +185,22 @@ namespace SSO.Controllers
             {
                 return Unauthorized();
             }
+        }
+
+        [HttpGet("connect/endsession")]
+        public IActionResult EndSession([FromQuery] string post_logout_redirect_uri, [FromQuery] string id_token_hint)
+        {
+            // Clear the authentication cookies (your token cookie)
+            Response.Cookies.Delete("token");
+
+            // Optionally clear other OIDC state cookies
+            Response.Cookies.Delete("oidc_nonce");
+            Response.Cookies.Delete("appId");
+
+            if (!string.IsNullOrEmpty(post_logout_redirect_uri))
+                return Redirect(post_logout_redirect_uri);
+
+            return Ok("Logged out");
         }
     }
 }
