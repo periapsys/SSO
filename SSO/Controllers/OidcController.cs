@@ -188,7 +188,7 @@ namespace SSO.Controllers
         }
 
         [HttpGet("connect/endsession")]
-        public IActionResult EndSession([FromQuery] string post_logout_redirect_uri, [FromQuery] string id_token_hint)
+        public IActionResult EndSession([FromQuery] string? post_logout_redirect_uri, [FromQuery] string? id_token_hint)
         {
             // Clear the authentication cookies (your token cookie)
             Response.Cookies.Delete("token");
