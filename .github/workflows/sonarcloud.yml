@@ -33,5 +33,5 @@ jobs:
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION_KEY }}
             -Dsonar.exclusions=.github/**
-            -Dsonar.coverage.exclusions=**  # Disable code coverage analysis
+            -Dsonar.coverage.exclusions=**
           projectBaseDir: .
