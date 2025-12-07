@@ -16,7 +16,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Technology Used
 
-- [.Net 9](https://www.microsoft.com/net/download/windows)
+- [.Net 10](https://www.microsoft.com/net/download/windows)
 - [Vue 3](https://vuejs.org/guide/introduction.html)
 - [EntityFramework Core](https://docs.microsoft.com/en-us/ef/core/)
 - [ASP.Net Identity](https://www.asp.net/identity)
