@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using SSO.Business.Authentication.Queries;
@@ -8,6 +9,7 @@ using System.Security.Cryptography;
 
 namespace SSO.Controllers
 {
+    [EnableCors("AllowAnyOrigin")]
     [ApiController]
     public class OidcController : ControllerBase
     {
