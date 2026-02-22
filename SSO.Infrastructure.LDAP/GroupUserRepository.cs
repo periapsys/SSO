@@ -5,20 +5,25 @@ using SSO.Domain.Models;
 using SSO.Infrastructure.LDAP.Models;
 using SSO.Infrastructure.Management;
 using SSO.Infrastructure.Settings.Enums;
+using SSO.Infrastructure.Settings.Services;
 using System.DirectoryServices;
 
 namespace SSO.Infrastructure.LDAP
 {
     public class GroupUserRepository : GroupUserRepositoryBase, IDisposable
     {
-        private readonly IAppDbContext _context;
+        readonly IAppDbContext _context;
+        readonly JwtSecretService _jwtSecretService;
+        readonly RsaKeyService _rsaKeyService;
         private DirectoryEntry _dirEntry;
         private DirectorySearcher _dirSearcher;
         private bool _disposed;
 
-        public GroupUserRepository(IAppDbContext context) : base(context)
+        public GroupUserRepository(IAppDbContext context, JwtSecretService jwtSecretService, RsaKeyService rsaKeyService) : base(context)
         {
             _context = context;
+            _jwtSecretService = jwtSecretService;
+            _rsaKeyService = rsaKeyService;
         }
 
         public override Task<GroupUser> Add(GroupUser param, bool? saveChanges = true, object? args = null)
@@ -110,7 +115,8 @@ namespace SSO.Infrastructure.LDAP
             var realmId = (await _context.Groups.FirstAsync(x => x.GroupId == groupUser.GroupId)).RealmId;
             var realm = await _context.Realms.Include(x => x.IdpSettingsCollection).FirstAsync(x => x.RealmId == realmId);
             var idpSettings = realm.IdpSettingsCollection.FirstOrDefault(x => x.IdentityProvider == IdentityProvider.LDAP) ?? throw new ArgumentException("LDAP is not configured.");
-            var ldapSettings = JsonConvert.DeserializeObject<LDAPSettings>(idpSettings.Value);
+            var decStr = _rsaKeyService.DecryptString(idpSettings.Value, _jwtSecretService.PrivateKey);
+            var ldapSettings = JsonConvert.DeserializeObject<LDAPSettings>(decStr);
             var ldapConnectionString = $"{(ldapSettings.UseSSL ? "LDAPS" : "LDAP")}://{ldapSettings.Server}:{ldapSettings.Port}/{ldapSettings.SearchBase}";
             _dirEntry = new DirectoryEntry(ldapConnectionString, ldapSettings.Username, ldapSettings.Password);
             _dirSearcher = new DirectorySearcher(_dirEntry);
