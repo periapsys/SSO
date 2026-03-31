@@ -38,7 +38,7 @@ namespace SSO.Controllers
         [Route(".well-known/openid-configuration")]
         public IActionResult Discovery()
         {
-            var issuer = $"{Request.Scheme}://{Request.Host}";
+            var issuer = $"https://{Request.Host}";
 
             return Ok(new
             {
