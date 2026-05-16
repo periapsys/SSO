@@ -46,6 +46,8 @@
 
 <script>
 import { loadCaptcha } from '@/services/captcha.service';
+import { forgotPassword } from "@/services/authentication.service";
+import { emitter } from '@/services/emitter.service';
 
 export default {
     data: () => ({
@@ -63,13 +65,31 @@ export default {
     },
     methods: {
         submit() {
-
+            emitter.emit('showLoader', true);
+            var param = {
+                email: this.email,
+                captcha: {
+                    id: this.captchaId,
+                    answer: this.captchaAnswer
+                }
+            };
+            forgotPassword(param).then(r => {
+                alert('If this email is registered, you’ll receive a password reset link.');
+                emitter.emit('showLoader', false);
+                this.$router.back();
+            }, err => {
+                alert(err.response.data.error || 'An error occurred. Please try again.');
+            }).finally(() => {
+                emitter.emit('showLoader', false);
+                this.getCaptcha();
+            });
         },
 
         getCaptcha() {
             loadCaptcha().then(r => {
                 this.captchaImage = r.data.image;
-                this.captchaId = r.data.id;
+                this.captchaId = r.data.id;                
+                this.captchaAnswer = '';
             });
         }
     }

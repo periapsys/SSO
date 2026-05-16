@@ -15,10 +15,14 @@ namespace SSO.Business.Captchas.Handlers
 
         public async Task<Unit> Handle(ValidateCaptchaQuery request, CancellationToken cancellationToken)
         {
-            if (!_cache.TryGetValue($"captcha:{request.Captcha.Id}", out string? answer))
+            var key = $"captcha:{request.Captcha.Id}";
+
+            if (!_cache.TryGetValue(key, out string? answer))
                 throw new ArgumentException("Captcha not found or expired.");
 
-            if (answer != request.Captcha.Answer)
+            _cache.Remove(key);
+
+            if (!string.Equals(answer, request.Captcha.Answer, StringComparison.Ordinal))
                 throw new ArgumentException("Incorrect captcha answer.");
 
             return new();

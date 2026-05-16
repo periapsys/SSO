@@ -9,6 +9,11 @@ const routes = [
         component: () => import('@/pages/System.vue'),
     },
     {
+        path: "/404",
+        name: "404",
+        component: () => import('@/pages/404.vue'),
+    },
+    {
         path: "/login",
         name: "Login",
         component: () => import('@/pages/Login.vue'),
@@ -164,6 +169,10 @@ const routes = [
         beforeEnter: (to, from, next) => {
             next(canActivate(to))
         }
+    },
+    {
+        path: "/:pathMatch(.*)*",
+        redirect: "/404"
     },
 ];
 

@@ -9,7 +9,10 @@ const loginToSystem = async (form) => {
     return await axios.post(url, form);
 }
 
+const forgotPassword = async (form) => await axios.post("/api/authentication/forgotpassword", form);
+
 export {
     login,
-    loginToSystem
+    loginToSystem,
+    forgotPassword
 }

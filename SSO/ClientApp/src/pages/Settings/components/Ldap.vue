@@ -1,7 +1,7 @@
 <template>
     <div class="row g-4 settings-section">
         <div class="col-12 col-md-3">
-            <h3 class="section-title">LDAP</h3>
+            <h3 class="section-title">&nbsp;</h3>
             <div class="section-intro">Use <i>Lightweight Directory Access Protocol (LDAP)</i> to authenticate and
                 manage users.</div>
         </div>

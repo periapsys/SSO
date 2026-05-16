@@ -42,6 +42,7 @@
 		<ProjectReference Include="..\SSO.Infrastructure.Db.MySql\SSO.Infrastructure.Db.MySql.csproj" />
 		<ProjectReference Include="..\SSO.Infrastructure.Db.Postgres\SSO.Infrastructure.Db.Postgres.csproj" />
 		<ProjectReference Include="..\SSO.Infrastructure.LDAP\SSO.Infrastructure.LDAP.csproj" />
+		<ProjectReference Include="..\SSO.Infrastructure.Mailer\SSO.Infrastructure.Mailer.csproj" />
 		<ProjectReference Include="..\SSO.Infrastructure.Management\SSO.Infrastructure.Management.csproj" />
 		<ProjectReference Include="..\SSO.Infrastructure\SSO.Infrastructure.csproj" />
 	</ItemGroup>

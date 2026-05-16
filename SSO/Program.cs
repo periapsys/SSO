@@ -19,6 +19,7 @@ using SSO.Infrastructure;
 using SSO.Infrastructure.Db.MySql;
 using SSO.Infrastructure.Db.Postgres;
 using SSO.Infrastructure.LDAP;
+using SSO.Infrastructure.Mailer;
 using SSO.Infrastructure.Management;
 using SSO.Infrastructure.Settings.Constants;
 using SSO.Infrastructure.Settings.Services;
@@ -106,9 +107,11 @@ builder.Services.AddScoped<IGroupRoleRepository, GroupRoleRepository>();
 builder.Services.AddScoped<IRealmRepository, RealmRepository>();
 builder.Services.AddScoped<IRealmUserRepository, RealmUserRepository>();
 builder.Services.AddScoped<IRealmIdpSettingsRepository, RealmIdpSettingsRepository>();
+builder.Services.AddScoped<IRealmMailerSettingsRepository, RealmMailerSettingsRepository>();
 
 builder.Services.ApplyBusinessServiceCollection(builder.Configuration);
 builder.Services.ApplyLdapServiceCollection(builder.Configuration);
+builder.Services.ApplyMailerServiceCollection(builder.Configuration);
 
 builder.Services.AddSpaStaticFiles(configuration =>
 {

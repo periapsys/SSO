@@ -31,6 +31,7 @@ namespace SSO.Domain.Interfaces
         DbSet<Realm> Realms { get; set; }
         DbSet<RealmUser> RealmUsers { get; set; }
         DbSet<RealmIdpSettings> RealmIdpSettings { get; set; }
+        DbSet<RealmMailerSettings> RealmMailerSettings { get; set; }
         DbSet<RootUser> RootUsers { get; set; }
 
         // Database property from DbContext

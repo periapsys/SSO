@@ -1,8 +1,10 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using SSO.Business.Accounts.Commands;
 using SSO.Business.Authentication;
 using SSO.Business.Authentication.Queries;
+using SSO.Business.Captchas.Queries;
 using SSO.Filters;
 using System.ComponentModel.DataAnnotations;
 using System.Web;
@@ -136,6 +138,27 @@ namespace SSO.Controllers
             var res = await _mediator.Send(param);
 
             return Ok(res);
+        }
+
+        /// <summary>
+        /// Request for password recovery
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        [HttpPost("forgotpassword")]
+        public async Task<IActionResult> ForgotPassword([FromBody] PasswordRecoveryCommand param, [FromQuery] Guid? realmId = null)
+        {
+            var baseUrl = !string.IsNullOrEmpty(Request.Headers["Referer"])
+                    ? new Uri(Request.Headers["Referer"].ToString()).GetLeftPart(UriPartial.Authority)
+                    : $"{Request.Scheme}://{Request.Host}";
+
+            param.BaseUrl = baseUrl;
+
+            await _mediator.Send(new ValidateCaptchaQuery { Captcha = param.Captcha });
+
+            await _mediator.Send(param);
+
+            return Ok();
         }
     }
 }
