@@ -27,6 +27,8 @@ namespace SSO.Business.Accounts.Handlers
             if (user is null)
                 throw new ArgumentException("User with the provided email does not exist.");
 
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
             return new();
         }
     }

@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SSO.Infrastructure.Mailer\SSO.Infrastructure.Mailer.csproj" />
     <ProjectReference Include="..\SSO.Infrastructure.Settings\SSO.Infrastructure.Settings.csproj" />
   </ItemGroup>
 

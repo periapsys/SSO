@@ -22,6 +22,7 @@
     <ProjectReference Include="..\SSO.Infrastructure.Authentication\SSO.Infrastructure.Authentication.csproj" />
     <ProjectReference Include="..\SSO.Infrastructure.Helpers\SSO.Infrastructure.Helpers.csproj" />
     <ProjectReference Include="..\SSO.Infrastructure.LDAP\SSO.Infrastructure.LDAP.csproj" />
+    <ProjectReference Include="..\SSO.Infrastructure.Mailer\SSO.Infrastructure.Mailer.csproj" />
     <ProjectReference Include="..\SSO.Infrastructure.Settings\SSO.Infrastructure.Settings.csproj" />
   </ItemGroup>
 
