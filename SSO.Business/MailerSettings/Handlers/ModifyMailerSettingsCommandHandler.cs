@@ -7,7 +7,6 @@ using SSO.Infrastructure.Mailer.Enums;
 using SSO.Infrastructure.Settings.Services;
 using System.Security.Cryptography;
 using System.Text.Json;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace SSO.Business.MailerSettings.Handlers
 {
