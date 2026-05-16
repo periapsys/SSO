@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using SSO.Business.Captchas;
+using SSO.Business.Captchas.Queries;
 
 namespace SSO.Controllers
 {
@@ -9,11 +10,11 @@ namespace SSO.Controllers
     [ApiController]
     public class CaptchaController : ControllerBase
     {
-        readonly IMemoryCache _cache;
+        readonly IMediator _mediator;
 
-        public CaptchaController(IMemoryCache cache)
+        public CaptchaController(IMediator mediator)
         {
-            _cache = cache;
+            _mediator = mediator;
         }
 
         /// <summary>
@@ -23,26 +24,9 @@ namespace SSO.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var text = Random.Shared.Next(1000, 9999).ToString();
-            var id = Guid.NewGuid().ToString();
-
-            _cache.Set($"captcha:{id}", text, TimeSpan.FromMinutes(5));
-
-            var svg = $"""
-            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="40">
-              <rect width="100%" height="100%" fill="#f3f3f3"/>
-              <text x="15" y="28"
-                    font-size="24"
-                    font-family="monospace"
-                    fill="#333">{text}</text>
-            </svg>
-            """;
-
-            return Ok(new
-            {
-                id,
-                image = $"data:image/svg+xml;base64,{Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(svg))}"
-            });
+            var param = new GetCaptchaQuery();
+            var result = await _mediator.Send(param);
+            return Ok(result);
         }
 
         /// <summary>
@@ -53,13 +37,12 @@ namespace SSO.Controllers
         [HttpPost("validate")]
         public async Task<IActionResult> Validate([FromBody] CaptchaRequest request)
         {
-            if (!_cache.TryGetValue($"captcha:{request.Id}", out string? answer))
-                return BadRequest("Expired");
+            var param = new ValidateCaptchaQuery
+            {
+                Captcha = request
+            };
 
-            if (answer != request.Answer)
-                return BadRequest("Invalid");
-
-            _cache.Remove($"captcha:{request.Id}");
+            await _mediator.Send(param);
 
             return Ok();
         }

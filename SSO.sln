@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11217.181 d18.0
+VisualStudioVersion = 18.0.11217.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SSO.Business", "SSO.Business\SSO.Business.csproj", "{FC6666C1-4201-4E0D-8F82-C8CF17CD2594}"
 EndProject
@@ -36,6 +36,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSO.Infrastructure.Db.Postgres", "SSO.Infrastructure.Db.Postgres\SSO.Infrastructure.Db.Postgres.csproj", "{8E879BF9-FF73-48F3-B3B8-C84BADC147F5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSO.Infrastructure.Helpers", "SSO.Infrastructure.Helpers\SSO.Infrastructure.Helpers.csproj", "{0ABABC2F-629F-42E7-9249-FB8DB198D54D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSO.Infrastructure.Mailer", "SSO.Infrastructure.Mailer\SSO.Infrastructure.Mailer.csproj", "{D930395B-EC58-4044-A6B4-0E9A8414FDA6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -95,6 +97,10 @@ Global
 		{0ABABC2F-629F-42E7-9249-FB8DB198D54D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0ABABC2F-629F-42E7-9249-FB8DB198D54D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0ABABC2F-629F-42E7-9249-FB8DB198D54D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D930395B-EC58-4044-A6B4-0E9A8414FDA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D930395B-EC58-4044-A6B4-0E9A8414FDA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D930395B-EC58-4044-A6B4-0E9A8414FDA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D930395B-EC58-4044-A6B4-0E9A8414FDA6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -113,6 +119,7 @@ Global
 		{643CCC5B-A716-4120-B122-CE1B44C98B7D} = {78213346-AF3E-4D9C-B07F-698FFD328835}
 		{8E879BF9-FF73-48F3-B3B8-C84BADC147F5} = {78213346-AF3E-4D9C-B07F-698FFD328835}
 		{0ABABC2F-629F-42E7-9249-FB8DB198D54D} = {78213346-AF3E-4D9C-B07F-698FFD328835}
+		{D930395B-EC58-4044-A6B4-0E9A8414FDA6} = {78213346-AF3E-4D9C-B07F-698FFD328835}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FEACCE13-B4FB-4B39-96F8-77FAB0425877}
