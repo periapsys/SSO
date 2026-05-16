@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.OData;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using OwaspHeaders.Core.Enums;
@@ -12,6 +13,7 @@ using OwaspHeaders.Core.Models;
 using SSO;
 using SSO.Business;
 using SSO.Business.Authentication.Handlers;
+using SSO.Business.Captchas;
 using SSO.Business.Mappings;
 using SSO.Domain.Management.Interfaces;
 using SSO.Filters;
@@ -205,6 +207,46 @@ app.UseSwaggerUI(options =>
 app.UseHangfireServer();
 #pragma warning restore CS0618 // Type or member is obsolete
 app.UseHangfireDashboard();
+
+# region Captcha
+app.MapGet("/api/captcha", (IMemoryCache cache) =>
+{
+    var text = Random.Shared.Next(1000, 9999).ToString();
+    var id = Guid.NewGuid().ToString();
+
+    cache.Set($"captcha:{id}", text, TimeSpan.FromMinutes(5));
+
+    var svg = $"""
+    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="40">
+      <rect width="100%" height="100%" fill="#f3f3f3"/>
+      <text x="15" y="28"
+            font-size="24"
+            font-family="monospace"
+            fill="#333">{text}</text>
+    </svg>
+    """;
+
+    return Results.Ok(new
+    {
+        id,
+        image = $"data:image/svg+xml;base64,{Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(svg))}"
+    });
+});
+
+app.MapPost("/api/captcha/validate",
+    (CaptchaRequest req, IMemoryCache cache) =>
+    {
+        if (!cache.TryGetValue($"captcha:{req.Id}", out string? answer))
+            return Results.BadRequest("Expired");
+
+        if (answer != req.Answer)
+            return Results.BadRequest("Invalid");
+
+        cache.Remove($"captcha:{req.Id}");
+
+        return Results.Ok();
+    });
+# endregion
 
 app.Run();
 

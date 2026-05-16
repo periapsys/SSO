@@ -14,6 +14,11 @@ const routes = [
         component: () => import('@/pages/Login.vue'),
     },
     {
+        path: "/forgotpassword",
+        name: "ForgotPassword",
+        component: () => import('@/pages/ForgotPassword.vue'),
+    },
+    {
         path: '/logout',
         name: "Logout",
         beforeEnter(to, from, next) {
@@ -42,9 +47,6 @@ const routes = [
         path: "/changepassword",
         name: "ChangePassword",
         component: () => import('@/pages/ChangePassword.vue'),
-        beforeEnter: (to, from, next) => {
-            next(canActivate(to))
-        }
     },
     {
         path: "/main",
