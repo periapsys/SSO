@@ -22,11 +22,22 @@ namespace SSO.Business.Captchas.Handlers
 
             var svg = $"""
             <svg xmlns="http://www.w3.org/2000/svg" width="120" height="40">
+              <defs>
+                <filter id="d">
+                  <feTurbulence baseFrequency=".06" seed="10"/>
+                  <feDisplacementMap in="SourceGraphic" scale="5.5"/>
+                </filter>
+              </defs>
+
               <rect width="100%" height="100%" fill="#f3f3f3"/>
+
               <text x="15" y="28"
                     font-size="24"
                     font-family="monospace"
-                    fill="#333">{text}</text>
+                    fill="#333"
+                    filter="url(#d)">
+                {text}
+              </text>
             </svg>
             """;
 

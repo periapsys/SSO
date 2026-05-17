@@ -24,6 +24,11 @@ const routes = [
         component: () => import('@/pages/ForgotPassword.vue'),
     },
     {
+        path: "/resetpassword",
+        name: "ResetPassword",
+        component: () => import('@/pages/ResetPassword.vue'),
+    },
+    {
         path: '/logout',
         name: "Logout",
         beforeEnter(to, from, next) {

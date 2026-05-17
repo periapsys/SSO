@@ -25,7 +25,7 @@ export default {
         },
     },
     data() {
-        return { loading: false, showNav: true, allowedNavs: ['/', '/init', '/login', '/changepassword', '/forgotpassword', '/404'] };
+        return { loading: false, showNav: true, allowedNavs: ['/', '/init', '/login', '/changepassword', '/forgotpassword', '/resetpassword', '/404'] };
     },
     mounted() {
         if (window.top !== window.self) {

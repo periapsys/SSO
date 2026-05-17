@@ -15,8 +15,13 @@ const forgotPassword = async (form) => await axios.post("/api/authentication/for
     }
 });
 
+const resetPasswordInit = async (token) => await axios.get(`/api/authentication/resetpassword?token=${token}`);
+const resetPassword = async (form) => await axios.post("/api/authentication/resetpassword", form);
+
 export {
     login,
     loginToSystem,
-    forgotPassword
+    forgotPassword,
+    resetPasswordInit,
+    resetPassword
 }

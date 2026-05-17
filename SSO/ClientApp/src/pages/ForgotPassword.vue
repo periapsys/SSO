@@ -31,9 +31,9 @@
 
                         <div class="text-center">
                             <button type="submit" class="btn app-btn-primary w-100 theme-btn mx-auto">Submit</button>
-                        </div>
-                        <div class="text-center mt-3">
-                            <button type="button" class="btn btn-link text-muted p-0" @click.prevent="$router.back()">Back</button>
+                            <div class="auth-option text-center pt-5">
+                                <a class="text-link" href="#"@click.prevent="$router.back()">Back</a>
+							</div>
                         </div>
                     </form>
                 </div><!--//auth-form-container-->

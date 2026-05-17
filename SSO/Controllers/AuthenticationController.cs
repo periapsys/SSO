@@ -160,5 +160,18 @@ namespace SSO.Controllers
 
             return Ok();
         }
+
+        /// <summary>
+        /// Initializes password reset process. Validates token.
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        [HttpGet("resetpassword")]
+        public async Task<IActionResult> ResetPasswordInit([FromQuery] CheckResetPasswordTokenQuery param)
+        {
+            await _mediator.Send(param);
+
+            return Ok();
+        }
     }
 }
