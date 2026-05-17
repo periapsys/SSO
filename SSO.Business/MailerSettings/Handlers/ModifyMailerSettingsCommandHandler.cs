@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using SSO.Business.MailerSettings.Commands;
 using SSO.Domain.Management.Interfaces;
 using SSO.Infrastructure.Mailer.Dtos;
@@ -44,7 +45,15 @@ namespace SSO.Business.MailerSettings.Handlers
                 await _realmMailerSettingsRepository.Delete(rec, false);
 
             var publicKey = RSA.Create(); publicKey.ImportParameters(_jwtSecretService.PrivateKey.ExportParameters(false));
-            var secret = _rsaKeyService.EncryptString(JsonConvert.SerializeObject(data), publicKey);
+            
+            // Replace the original serialization line with the following to produce camelCase JSON:
+            var serializerSettings = new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                NullValueHandling = NullValueHandling.Ignore
+            };
+
+            var secret = _rsaKeyService.EncryptString(JsonConvert.SerializeObject(data, serializerSettings), publicKey);
 
             var entry = new Domain.Models.RealmMailerSettings
             {

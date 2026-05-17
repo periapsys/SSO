@@ -9,7 +9,11 @@ const loginToSystem = async (form) => {
     return await axios.post(url, form);
 }
 
-const forgotPassword = async (form) => await axios.post("/api/authentication/forgotpassword", form);
+const forgotPassword = async (form) => await axios.post("/api/authentication/forgotpassword", form, {
+    headers: {
+        Referer: document.referrer || window.location.href
+    }
+});
 
 export {
     login,

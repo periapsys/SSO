@@ -7,6 +7,7 @@ using SSO.Domain.Models;
 using SSO.Infrastructure.Mailer;
 using SSO.Infrastructure.Mailer.Dtos;
 using SSO.Infrastructure.Mailer.Enums;
+using SSO.Infrastructure.Settings.Services;
 using System.Text.Json;
 
 namespace SSO.Business.Authentication.Handlers
@@ -17,16 +18,22 @@ namespace SSO.Business.Authentication.Handlers
         readonly IRealmRepository _realmRepository;
         readonly UserManager<ApplicationUser> _userManager;
         readonly MailerService _mailerService;
+        readonly JwtSecretService _jwtSecretService;
+        readonly RsaKeyService _rsaKeyService;
 
         public PasswordRecoveryCommandHandler(IMemoryCache cache, 
             IRealmRepository realmRepository, 
             UserManager<ApplicationUser> userManager,
-            MailerService mailerService)
+            MailerService mailerService,
+            JwtSecretService jwtSecretService,
+            RsaKeyService rsaKeyService)
         {
             _cache = cache;
             _realmRepository = realmRepository;
             _userManager = userManager;
             _mailerService = mailerService;
+            _jwtSecretService = jwtSecretService;
+            _rsaKeyService = rsaKeyService;
         }
 
         public async Task<Unit> Handle(PasswordRecoveryCommand request, CancellationToken cancellationToken)
@@ -47,9 +54,11 @@ namespace SSO.Business.Authentication.Handlers
 
                     var resetLink = $"{request.BaseUrl}/resetpassword?userId={user.Id}&token={id}";
 
+                    var decStr = _rsaKeyService.DecryptString(realm.RealmMailerSettings.Value, _jwtSecretService.PrivateKey);
+
                     (object settings, string username) parameters = realm.RealmMailerSettings.MailerType switch
                     {
-                        MailerType.Smtp => GetParameters<SmtpDto>(realm.RealmMailerSettings.Value),
+                        MailerType.Smtp => GetParameters<SmtpDto>(decStr),
                         _ => throw new NotSupportedException($"MailerType '{realm.RealmMailerSettings.MailerType}' is not supported.")
                     };
 
