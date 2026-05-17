@@ -50,5 +50,18 @@ namespace SSO.Controllers
 
             return Ok(res);
         }
+
+        /// <summary>
+        /// Tests Mailer settings by sending a test email to the specified email address
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        [HttpPost("test")]
+        public async Task<IActionResult> Test([FromBody] TestMailerSettingsQuery param)
+        {
+            await _mediator.Send(param);
+
+            return Ok();
+        }
     }
 }

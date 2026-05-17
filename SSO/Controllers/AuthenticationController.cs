@@ -1,8 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using SSO.Business.Accounts.Commands;
 using SSO.Business.Authentication;
+using SSO.Business.Authentication.Commands;
 using SSO.Business.Authentication.Queries;
 using SSO.Business.Captchas.Queries;
 using SSO.Filters;

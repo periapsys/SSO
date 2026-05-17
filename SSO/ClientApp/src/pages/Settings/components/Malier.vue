@@ -32,6 +32,10 @@
                                 Enable SSL
                             </label>
                         </div>
+                        <div class="mb-3">
+                            <label for="setting-input-2" class="form-label">To Email</label>
+                            <input class="form-control" autocomplete="off" v-model="toEmail" type="email"/>
+                        </div>
                         <div class="row">
                             <div class="col-auto mt-2">
                                 <button type="submit" class="btn app-btn-primary">Save Changes</button>&nbsp;
@@ -53,6 +57,7 @@ import { modifyMailerSetting, deleteMailerSetting, testMailerSetting, getMailerS
 export default {
     data: () => ({
         mailSettings: new Object(),
+        toEmail: '',
     }),
     mounted() {
         getMailerSetting().then(r => {
@@ -72,7 +77,17 @@ export default {
                 emitter.emit("showLoader", false);
             });
         },
-        onTest() { },
+        onTest() {
+            emitter.emit("showLoader", true);
+
+            testMailerSetting({ settings: this.mailSettings, toEmail: this.toEmail }).then(r => {
+                emitter.emit("showLoader", false);
+                alert('Test email sent! Please check your inbox.');
+            }, (err) => {
+                alert('Failed to send test email. Please check your settings and try again.');
+                emitter.emit("showLoader", false);
+            });
+         },
     }
 }
 </script>

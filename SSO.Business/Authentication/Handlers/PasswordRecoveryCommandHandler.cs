@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
-using SSO.Business.Accounts.Commands;
+using SSO.Business.Authentication.Commands;
 using SSO.Domain.Management.Interfaces;
 using SSO.Domain.Models;
 using SSO.Infrastructure.Mailer;
@@ -9,7 +9,7 @@ using SSO.Infrastructure.Mailer.Dtos;
 using SSO.Infrastructure.Mailer.Enums;
 using System.Text.Json;
 
-namespace SSO.Business.Accounts.Handlers
+namespace SSO.Business.Authentication.Handlers
 {
     public class PasswordRecoveryCommandHandler : IRequestHandler<PasswordRecoveryCommand, Unit>
     {
@@ -56,7 +56,7 @@ namespace SSO.Business.Accounts.Handlers
                     await _mailerService.SendEmailAsync(mailerType: MailerType.Smtp, 
                         settings: parameters.settings, 
                         fromEmail: parameters.username, 
-                        fromName: "Password Recovery", 
+                        fromName: "SSO", 
                         toEmail: request.Email, 
                         subject: "Password Recovery", 
                         body: $"Click the link to reset your password: {resetLink}");

@@ -2,7 +2,7 @@
 using SSO.Business.Captchas;
 using System.Text.Json.Serialization;
 
-namespace SSO.Business.Accounts.Commands
+namespace SSO.Business.Authentication.Commands
 {
     public class PasswordRecoveryCommand : IRequest<Unit>
     {
