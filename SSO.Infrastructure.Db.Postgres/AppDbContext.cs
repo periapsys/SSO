@@ -24,6 +24,7 @@ namespace SSO.Infrastructure.Db.Postgres
             builder.ApplyConfiguration(new RealmConfig(DatabaseType.Postgres));
             builder.ApplyConfiguration(new RealmUserConfig());
             builder.ApplyConfiguration(new RealmIdpSettingsConfig(DatabaseType.Postgres));
+            builder.ApplyConfiguration(new RealmMailerSettingsConfig(DatabaseType.Postgres));
             builder.ApplyConfiguration(new RootUserConfig());
 
             base.OnModelCreating(builder);

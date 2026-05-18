@@ -14,5 +14,6 @@
         public virtual ICollection<Group> Groups { get; set; }
         public virtual ICollection<RealmUser> Users { get; set; }
         public virtual ICollection<RealmIdpSettings> IdpSettingsCollection { get; set; }
+        public virtual RealmMailerSettings RealmMailerSettings { get; set; }
     }
 }

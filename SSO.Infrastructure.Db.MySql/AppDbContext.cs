@@ -24,6 +24,7 @@ namespace SSO.Infrastructure.Db.MySql
             builder.ApplyConfiguration(new RealmConfig(DatabaseType.MySql));
             builder.ApplyConfiguration(new RealmUserConfig());
             builder.ApplyConfiguration(new RealmIdpSettingsConfig(DatabaseType.MySql));
+            builder.ApplyConfiguration(new RealmMailerSettingsConfig(DatabaseType.MySql));
             builder.ApplyConfiguration(new RootUserConfig());
 
             base.OnModelCreating(builder);

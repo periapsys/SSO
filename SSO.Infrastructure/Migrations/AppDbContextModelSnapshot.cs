@@ -17,7 +17,7 @@ namespace SSO.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.13")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -543,6 +543,23 @@ namespace SSO.Infrastructure.Migrations
                     b.ToTable("RealmIdpSettings");
                 });
 
+            modelBuilder.Entity("SSO.Domain.Models.RealmMailerSettings", b =>
+                {
+                    b.Property<Guid>("RealmId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte>("MailerType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("RealmId");
+
+                    b.ToTable("RealmMailerSettings");
+                });
+
             modelBuilder.Entity("SSO.Domain.Models.RealmUser", b =>
                 {
                     b.Property<Guid>("RealmId")
@@ -739,6 +756,17 @@ namespace SSO.Infrastructure.Migrations
                     b.Navigation("Realm");
                 });
 
+            modelBuilder.Entity("SSO.Domain.Models.RealmMailerSettings", b =>
+                {
+                    b.HasOne("SSO.Domain.Models.Realm", "Realm")
+                        .WithOne("RealmMailerSettings")
+                        .HasForeignKey("SSO.Domain.Models.RealmMailerSettings", "RealmId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Realm");
+                });
+
             modelBuilder.Entity("SSO.Domain.Models.RealmUser", b =>
                 {
                     b.HasOne("SSO.Domain.Models.Realm", "Realm")
@@ -800,6 +828,9 @@ namespace SSO.Infrastructure.Migrations
                     b.Navigation("Groups");
 
                     b.Navigation("IdpSettingsCollection");
+
+                    b.Navigation("RealmMailerSettings")
+                        .IsRequired();
 
                     b.Navigation("Users");
                 });

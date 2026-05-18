@@ -9,9 +9,24 @@ const routes = [
         component: () => import('@/pages/System.vue'),
     },
     {
+        path: "/404",
+        name: "404",
+        component: () => import('@/pages/404.vue'),
+    },
+    {
         path: "/login",
         name: "Login",
         component: () => import('@/pages/Login.vue'),
+    },
+    {
+        path: "/forgotpassword",
+        name: "ForgotPassword",
+        component: () => import('@/pages/ForgotPassword.vue'),
+    },
+    {
+        path: "/resetpassword",
+        name: "ResetPassword",
+        component: () => import('@/pages/ResetPassword.vue'),
     },
     {
         path: '/logout',
@@ -42,9 +57,6 @@ const routes = [
         path: "/changepassword",
         name: "ChangePassword",
         component: () => import('@/pages/ChangePassword.vue'),
-        beforeEnter: (to, from, next) => {
-            next(canActivate(to))
-        }
     },
     {
         path: "/main",
@@ -162,6 +174,10 @@ const routes = [
         beforeEnter: (to, from, next) => {
             next(canActivate(to))
         }
+    },
+    {
+        path: "/:pathMatch(.*)*",
+        redirect: "/404"
     },
 ];
 

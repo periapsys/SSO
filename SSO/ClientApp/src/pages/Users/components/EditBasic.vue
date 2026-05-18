@@ -30,7 +30,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Username*</label>
-                            <input v-model="user.username" class="form-control" minlength="1" maxlength="20"
+                            <input v-model="user.username" class="form-control" minlength="1" maxlength="256"
                                 placeholder="Username" required autocomplete="off" ref="Username" />
                             <div class="invalid-feedback">
                                 {{ errorMessage }}

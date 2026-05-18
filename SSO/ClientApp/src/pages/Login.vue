@@ -22,6 +22,10 @@
 						</div><!--//form-group-->
 						<div class="text-center">
 							<button type="submit" class="btn app-btn-primary w-100 theme-btn mx-auto">Log In</button>
+							<div class="auth-option text-center pt-5">
+								<router-link :to="{ name: 'ForgotPassword' }" class="text-link">Forgot
+									password?</router-link>
+							</div>
 						</div>
 					</form>
 				</div><!--//auth-form-container-->

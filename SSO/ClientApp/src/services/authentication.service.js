@@ -9,7 +9,19 @@ const loginToSystem = async (form) => {
     return await axios.post(url, form);
 }
 
+const forgotPassword = async (form) => await axios.post("/api/authentication/forgotpassword", form, {
+    headers: {
+        Referer: document.referrer || window.location.href
+    }
+});
+
+const resetPasswordInit = async (token) => await axios.get(`/api/authentication/resetpassword?token=${token}`);
+const resetPassword = async (form) => await axios.post("/api/authentication/resetpassword", form);
+
 export {
     login,
-    loginToSystem
+    loginToSystem,
+    forgotPassword,
+    resetPasswordInit,
+    resetPassword
 }

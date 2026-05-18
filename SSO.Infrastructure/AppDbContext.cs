@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SSO.Infrastructure.Configs;
+using SSO.Infrastructure.Enums;
 
 namespace SSO.Infrastructure
 {
@@ -24,6 +25,7 @@ namespace SSO.Infrastructure
             builder.ApplyConfiguration(new RealmConfig());
             builder.ApplyConfiguration(new RealmUserConfig());
             builder.ApplyConfiguration(new RealmIdpSettingsConfig());
+            builder.ApplyConfiguration(new RealmMailerSettingsConfig());
             builder.ApplyConfiguration(new RootUserConfig());
 
             base.OnModelCreating(builder);
