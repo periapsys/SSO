@@ -4,11 +4,11 @@ using SSO.Business.Authentication.Queries;
 
 namespace SSO.Business.Authentication.Handlers
 {
-    public class CheckResetPasswornTokenQueryHandler : IRequestHandler<CheckResetPasswordTokenQuery, Unit>
+    public class CheckResetPasswordTokenQueryHandler : IRequestHandler<CheckResetPasswordTokenQuery, Unit>
     {
         readonly IMemoryCache _cache;
 
-        public CheckResetPasswornTokenQueryHandler(IMemoryCache cache)
+        public CheckResetPasswordTokenQueryHandler(IMemoryCache cache)
         {
             _cache = cache;
         }

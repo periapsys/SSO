@@ -86,7 +86,12 @@ namespace SSO.Infrastructure.LDAP
                 userEntry.CommitChanges();
             }
 
-            var token = await _userManager.GeneratePasswordResetTokenAsync(applicationUser);
+            var token = args?
+                    .GetType()
+                    .GetProperty("Token")?
+                    .GetValue(args)?
+                    .ToString()
+                    ?? await _userManager.GeneratePasswordResetTokenAsync(applicationUser);
 
             var res = await _userManager.ResetPasswordAsync(applicationUser, token, password);
 

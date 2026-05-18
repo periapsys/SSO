@@ -146,7 +146,7 @@ namespace SSO.Controllers
         /// <param name="param"></param>
         /// <returns></returns>
         [HttpPost("forgotpassword")]
-        public async Task<IActionResult> ForgotPassword([FromBody] PasswordRecoveryCommand param, [FromQuery] Guid? realmId = null)
+        public async Task<IActionResult> ForgotPassword([FromBody] PasswordRecoveryCommand param)
         {
             var baseUrl = !string.IsNullOrEmpty(Request.Headers["Referer"])
                     ? new Uri(Request.Headers["Referer"].ToString()).GetLeftPart(UriPartial.Authority)
@@ -169,6 +169,22 @@ namespace SSO.Controllers
         [HttpGet("resetpassword")]
         public async Task<IActionResult> ResetPasswordInit([FromQuery] CheckResetPasswordTokenQuery param)
         {
+            await _mediator.Send(param);
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Processes password reset
+        /// </summary>
+        /// <param name="param"></param>
+        /// <param name="realmId"></param>
+        /// <returns></returns>
+        [HttpPost("resetpassword")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand param, [FromQuery] Guid? realmId = null)
+        {
+            param.RealmId = realmId;
+
             await _mediator.Send(param);
 
             return Ok();

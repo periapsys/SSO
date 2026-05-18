@@ -83,6 +83,9 @@ export default {
 	mounted() {
 		const query = this.$route.query;
 
+		this.param.userId = query.userId;
+		this.param.token = query.token;
+
 		resetPasswordInit(query.token).then(r => {
 			this.getCaptcha();
 		}, err => {
@@ -92,6 +95,11 @@ export default {
 	methods: {
 		submit() {
 			emitter.emit('showLoader', true);
+			
+			this.param.captcha = {
+				id: this.captchaId,
+				answer: this.captchaAnswer
+			};
 
 			// Clear error messages
 			const allInputs = document.querySelectorAll('.is-invalid');
@@ -102,6 +110,7 @@ export default {
 
 			resetPassword(this.param).then(r => {
 				emitter.emit('showLoader', false);
+				alert('Change password successful.');
 				this.$router.push("/");
 			}, error => {
 				emitter.emit('showLoader', false);
