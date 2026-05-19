@@ -193,7 +193,7 @@
                                     <span class="nav-link-text">Help</span> </a><!--//nav-link-->
                             </li>
                             <li class="nav-item" v-show="newVersionAvailable">
-                                <a class="nav-link" href="https://github.com/reignydeyz/SSO/releases" target="_blank"
+                                <a class="nav-link" href="https://github.com/periapsys/SSO/releases" target="_blank"
                                     rel="noopener">
                                     <span class="nav-icon">
                                         <i class="bi bi-exclamation-triangle"></i>

@@ -57,7 +57,12 @@ namespace SSO.Infrastructure.Management
 
         public override async Task ChangePassword(ApplicationUser applicationUser, string password, ApplicationUser? author, object? args = null)
         {
-            var token = await _userManager.GeneratePasswordResetTokenAsync(applicationUser);
+            var token = args?
+                    .GetType()
+                    .GetProperty("Token")?
+                    .GetValue(args)?
+                    .ToString()
+                    ?? await _userManager.GeneratePasswordResetTokenAsync(applicationUser);
 
             var res = await _userManager.ResetPasswordAsync(applicationUser, token, password);
 

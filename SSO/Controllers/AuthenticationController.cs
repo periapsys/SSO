@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using SSO.Business.Authentication;
+using SSO.Business.Authentication.Commands;
 using SSO.Business.Authentication.Queries;
+using SSO.Business.Captchas.Queries;
 using SSO.Filters;
 using System.ComponentModel.DataAnnotations;
 using System.Web;
@@ -136,6 +138,56 @@ namespace SSO.Controllers
             var res = await _mediator.Send(param);
 
             return Ok(res);
+        }
+
+        /// <summary>
+        /// Request for password recovery
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        [HttpPost("forgotpassword")]
+        public async Task<IActionResult> ForgotPassword([FromBody] PasswordRecoveryCommand param)
+        {
+            var baseUrl = !string.IsNullOrEmpty(Request.Headers["Referer"])
+                    ? new Uri(Request.Headers["Referer"].ToString()).GetLeftPart(UriPartial.Authority)
+                    : $"{Request.Scheme}://{Request.Host}";
+
+            param.BaseUrl = baseUrl;
+
+            await _mediator.Send(new ValidateCaptchaQuery { Captcha = param.Captcha });
+
+            await _mediator.Send(param);
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Initializes password reset process. Validates token.
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        [HttpGet("resetpassword")]
+        public async Task<IActionResult> ResetPasswordInit([FromQuery] CheckResetPasswordTokenQuery param)
+        {
+            await _mediator.Send(param);
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Processes password reset
+        /// </summary>
+        /// <param name="param"></param>
+        /// <param name="realmId"></param>
+        /// <returns></returns>
+        [HttpPost("resetpassword")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand param, [FromQuery] Guid? realmId = null)
+        {
+            param.RealmId = realmId;
+
+            await _mediator.Send(param);
+
+            return Ok();
         }
     }
 }

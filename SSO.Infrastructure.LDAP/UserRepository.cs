@@ -5,6 +5,7 @@ using SSO.Domain.Models;
 using SSO.Infrastructure.LDAP.Models;
 using SSO.Infrastructure.Management;
 using SSO.Infrastructure.Settings.Enums;
+using SSO.Infrastructure.Settings.Services;
 using System.DirectoryServices;
 using System.Linq.Expressions;
 
@@ -13,16 +14,20 @@ namespace SSO.Infrastructure.LDAP
     public class UserRepository : UserRepositoryBase, IDisposable
     {
         readonly IAppDbContext _context;
+        readonly JwtSecretService _jwtSecretService;
+        readonly RsaKeyService _rsaKeyService;
         readonly UserManager<ApplicationUser> _userManager;
         DirectoryEntry _dirEntry;
         DirectorySearcher _dirSearcher;
 
         bool _disposed;
 
-        public UserRepository(UserManager<ApplicationUser> userManager,
+        public UserRepository(JwtSecretService jwtSecretService, RsaKeyService rsaKeyService, UserManager<ApplicationUser> userManager,
             IAppDbContext context) : base(userManager, context)
         {
             _context = context;
+            _jwtSecretService = jwtSecretService;
+            _rsaKeyService = rsaKeyService;
             _userManager = userManager;
         }
 
@@ -81,7 +86,12 @@ namespace SSO.Infrastructure.LDAP
                 userEntry.CommitChanges();
             }
 
-            var token = await _userManager.GeneratePasswordResetTokenAsync(applicationUser);
+            var token = args?
+                    .GetType()
+                    .GetProperty("Token")?
+                    .GetValue(args)?
+                    .ToString()
+                    ?? await _userManager.GeneratePasswordResetTokenAsync(applicationUser);
 
             var res = await _userManager.ResetPasswordAsync(applicationUser, token, password);
 
@@ -199,7 +209,8 @@ namespace SSO.Infrastructure.LDAP
             
             var realm = (Realm)args;
             var idpSettings = realm.IdpSettingsCollection.FirstOrDefault(x => x.IdentityProvider == IdentityProvider.LDAP) ?? throw new ArgumentException("LDAP is not configured.");
-            var ldapSettings = JsonConvert.DeserializeObject<LDAPSettings>(idpSettings.Value);
+            var decStr = _rsaKeyService.DecryptString(idpSettings.Value, _jwtSecretService.PrivateKey);
+            var ldapSettings = JsonConvert.DeserializeObject<LDAPSettings>(decStr);
             var ldapConnectionString = $"{(ldapSettings.UseSSL ? "LDAPS" : "LDAP")}://{ldapSettings.Server}:{ldapSettings.Port}/{ldapSettings.SearchBase}";
             _dirEntry = new DirectoryEntry(ldapConnectionString, ldapSettings.Username, ldapSettings.Password);
             _dirSearcher = new DirectorySearcher(_dirEntry);

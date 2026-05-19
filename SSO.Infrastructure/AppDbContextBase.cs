@@ -35,6 +35,7 @@ namespace SSO.Infrastructure
         public DbSet<RealmUser> RealmUsers { get; set; }
         public DbSet<RealmIdpSettings> RealmIdpSettings { get; set; }
         public DbSet<RootUser> RootUsers { get; set; }
+        public DbSet<RealmMailerSettings> RealmMailerSettings { get; set; }
 
         public new DbSet<TEntity> Set<TEntity>() where TEntity : class => base.Set<TEntity>();
 

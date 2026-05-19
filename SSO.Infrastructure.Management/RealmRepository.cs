@@ -48,7 +48,10 @@ namespace SSO.Infrastructure.Management
 
         public async Task<Realm> FindOne(Expression<Func<Realm, bool>> predicate)
         {
-            return await _context.Realms.Include(x => x.IdpSettingsCollection).FirstOrDefaultAsync(predicate);
+            return await _context.Realms
+                .Include(x => x.IdpSettingsCollection)
+                .Include(x => x.RealmMailerSettings)
+                .FirstOrDefaultAsync(predicate);
         }
 
         public async Task<Realm> Update(Realm param, bool? saveChanges = true, object? args = null)

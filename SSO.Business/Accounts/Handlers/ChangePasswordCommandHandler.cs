@@ -38,7 +38,7 @@ namespace SSO.Business.Accounts.Handlers
                 if (!(await _userManager.CheckPasswordAsync(request.User, request.CurrentPassword)))
                     throw new ArgumentException(message: "Incorrect password.", paramName: "InvalidPassword");
 
-            await userRepo.ChangePassword(request.User, request.NewPassword, default, realm);
+            await userRepo.ChangePassword(request.User, request.NewPassword, request.Author, default);
 
             return new Unit();
         }

@@ -4,14 +4,15 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<NoWarn>$(NoWarn);NU1902;NU1903</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
 	<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
-    <PackageReference Include="MediatR" Version="13.1.0" />
+    <PackageReference Include="MediatR" Version="14.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.OData" Version="9.4.1" />
-    <PackageReference Include="QRCoder" Version="1.7.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
+    <PackageReference Include="QRCoder" Version="1.8.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.18.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +22,7 @@
     <ProjectReference Include="..\SSO.Infrastructure.Authentication\SSO.Infrastructure.Authentication.csproj" />
     <ProjectReference Include="..\SSO.Infrastructure.Helpers\SSO.Infrastructure.Helpers.csproj" />
     <ProjectReference Include="..\SSO.Infrastructure.LDAP\SSO.Infrastructure.LDAP.csproj" />
+    <ProjectReference Include="..\SSO.Infrastructure.Mailer\SSO.Infrastructure.Mailer.csproj" />
     <ProjectReference Include="..\SSO.Infrastructure.Settings\SSO.Infrastructure.Settings.csproj" />
   </ItemGroup>
 

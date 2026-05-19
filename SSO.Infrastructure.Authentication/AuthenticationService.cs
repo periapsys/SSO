@@ -18,7 +18,7 @@ namespace SSO.Infrastructure.Authentication
             var user = await _userManager.FindByNameAsync(username);
 
             if (user is null)
-                throw new UnauthorizedAccessException("User not found.");
+                throw new UnauthorizedAccessException("Username or password is invalid.");
 
             if (user.DateInactive != null)
                 throw new UnauthorizedAccessException("Account is inactive");
@@ -40,7 +40,7 @@ namespace SSO.Infrastructure.Authentication
 
                 await _userManager.UpdateAsync(user);
 
-                throw new UnauthorizedAccessException("Incorrect password.");
+                throw new UnauthorizedAccessException("Username or password is invalid.");
             }
 
             user.LastSessionId = Guid.NewGuid().ToString();

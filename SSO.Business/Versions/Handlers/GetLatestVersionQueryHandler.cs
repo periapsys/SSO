@@ -13,7 +13,7 @@ namespace SSO.Business.Versions.Handlers
                 var client = new HttpClient();
                 client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (compatible; MyApp/1.0)");
 
-                var response = await client.GetStringAsync("https://api.github.com/repos/reignydeyz/sso/releases");
+                var response = await client.GetStringAsync("https://api.github.com/repos/periapsys/sso/releases");
                 var array = JArray.Parse(response);
                 var firstItem = (JObject)array[0];
 

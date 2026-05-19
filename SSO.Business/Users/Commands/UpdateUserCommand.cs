@@ -22,8 +22,7 @@ namespace SSO.Business.Users.Commands
         public string? Email { get; set; }
 
         [Required]
-        [StringLength(20, MinimumLength = 1, ErrorMessage = "Username must be between 1 and 20 characters.")]
-        [RegularExpression(@"^[a-zA-Z0-9_-]+$", ErrorMessage = "Invalid characters in the username.")]
+        [StringLength(256, MinimumLength = 1, ErrorMessage = "Username must be between 1 and 20 characters.")]
         public string Username { get; set; }
 
         [StringLength(100, MinimumLength = 7, ErrorMessage = "The password must be between {2} and {1} characters long.")]
