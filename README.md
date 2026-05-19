@@ -73,9 +73,8 @@ These instructions will get you a copy of the project up and running on your loc
       ```
 - Run by pressing **F5**. Login page should be launched.
   - username: `admin@example.com`
-  - password: `Password123#`
-  
-    (Username modifications are required due to the removal of special characters and the disallowance of email formats. Please make the necessary adjustments.)
+  - password: `Password123#`  
+    
 - For **Swagger**, go to `{URL}/swagger`
 
 #### Front-end
