@@ -63,5 +63,22 @@ namespace SSO.Controllers
 
             return Ok();
         }
+
+        /// <summary>
+        /// Removes Mailer settings
+        /// </summary>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<IActionResult> Remove()
+        {
+            var cmd = new RemoveMailerSettingsCommand
+            {
+                RealmId = new Guid(User.Claims.First(x => x.Type == "realm").Value)
+            };
+
+            await _mediator.Send(cmd);
+
+            return Ok();
+        }
     }
 }

@@ -42,6 +42,10 @@
                                 <button type="button" class="btn app-btn-outline-primary" @click="onTest()">Test
                                     Settings</button>
                             </div>
+                            <div class="col-auto ms-auto mt-2">
+                                <button type="button" class="btn btn-danger" v-show="showDeleteButton"
+                                    @click="onDelete()">Remove</button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -58,11 +62,13 @@ export default {
     data: () => ({
         mailSettings: new Object(),
         toEmail: '',
+        showDeleteButton: false
     }),
     mounted() {
         getMailerSetting().then(r => {
             if (r.data != '') {
                 this.mailSettings = r.data;
+                this.showDeleteButton = true;
             }
         });
     },
@@ -88,6 +94,16 @@ export default {
                 emitter.emit("showLoader", false);
             });
          },
+         onDelete() {
+            if (confirm('Are you sure you want to delete this record?')) {
+                emitter.emit("showLoader", true);
+                deleteMailerSetting().then(r => {
+                    window.location.reload();
+                }, err => {
+                    emitter.emit("showLoader", false);
+                });
+            }
+        },
     }
 }
 </script>

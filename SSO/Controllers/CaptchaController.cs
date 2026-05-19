@@ -22,9 +22,9 @@ namespace SSO.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get([FromQuery] Guid? id)
         {
-            var param = new GetCaptchaQuery();
+            var param = new GetCaptchaQuery { Id = id };
             var result = await _mediator.Send(param);
             return Ok(result);
         }

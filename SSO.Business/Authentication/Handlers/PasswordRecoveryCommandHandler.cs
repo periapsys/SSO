@@ -62,13 +62,14 @@ namespace SSO.Business.Authentication.Handlers
                         _ => throw new NotSupportedException($"MailerType '{realm.RealmMailerSettings.MailerType}' is not supported.")
                     };
 
-                    await _mailerService.SendEmailAsync(mailerType: MailerType.Smtp, 
-                        settings: parameters.settings, 
-                        fromEmail: parameters.username, 
-                        fromName: "SSO", 
-                        toEmail: request.Email, 
-                        subject: "Password Recovery", 
-                        body: $"Click the link to reset your password: {resetLink}");
+                    await _mailerService.SendEmailAsync(
+                        mailerType: MailerType.Smtp,
+                        settings: parameters.settings,
+                        fromEmail: parameters.username,
+                        fromName: "SSO",
+                        toEmail: request.Email,
+                        subject: "Password Recovery",
+                        body: $"<html><body><p>Click the link below to reset your password:</p><p><a href=\"{resetLink}\">Reset your password</a></p></body></html>");
                 }
             }
 

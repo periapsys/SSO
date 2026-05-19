@@ -22,7 +22,7 @@ namespace SSO.Business.Captchas.Handlers
 
             _cache.Remove(key);
 
-            if (!string.Equals(answer, request.Captcha.Answer, StringComparison.Ordinal))
+            if (!string.Equals(answer, request.Captcha.Answer, StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException("Incorrect captcha answer.");
 
             return new();

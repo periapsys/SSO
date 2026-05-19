@@ -49,7 +49,7 @@
 							<input type="text" class="form-control" placeholder="Enter captcha" required="required"
 								v-model="captchaAnswer" autocomplete="off">
 
-							<button class="btn btn-outline-secondary" type="button" @click="getCaptcha()">
+							<button class="btn btn-outline-secondary" type="button" @click="getCaptcha(this.captchaId)">
 
 								<i class="bi bi-arrow-clockwise"></i>
 							</button>
@@ -146,8 +146,8 @@ export default {
 				e.type = "password";
 			}
 		},
-		getCaptcha() {
-			loadCaptcha().then(r => {
+		getCaptcha(id) {
+			loadCaptcha(id).then(r => {
 				this.captchaImage = r.data.image;
 				this.captchaId = r.data.id;
 				this.captchaAnswer = '';

@@ -15,8 +15,16 @@ namespace SSO.Business.Captchas.Handlers
 
         public async Task<GetCaptchaResult> Handle(GetCaptchaQuery request, CancellationToken cancellationToken)
         {
-            var text = Random.Shared.Next(1000, 9999).ToString();
-            var id = Guid.NewGuid().ToString();
+            Span<char> chars = stackalloc char[6];
+            ReadOnlySpan<char> alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+            for (var i = 0; i < chars.Length; i++)
+            {
+                chars[i] = alphabet[Random.Shared.Next(alphabet.Length)];
+            }
+
+            var text = new string(chars);
+            var id = request.Id ?? Guid.NewGuid();
 
             _cache.Set($"captcha:{id}", text, TimeSpan.FromMinutes(5));
 
@@ -41,7 +49,7 @@ namespace SSO.Business.Captchas.Handlers
             </svg>
             """;
 
-            return new GetCaptchaResult(id, $"data:image/svg+xml;base64,{Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(svg))}");
+            return new GetCaptchaResult(id.ToString(), $"data:image/svg+xml;base64,{Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(svg))}");
         }
     }
 }
