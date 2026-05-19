@@ -16,15 +16,18 @@
                         </div>
                         <div class="mb-3">
                             <label for="setting-input-2" class="form-label">Port*</label>
-                            <input class="form-control" required autocomplete="off" v-model="mailSettings.port" type="number"/>
+                            <input class="form-control" required autocomplete="off" v-model="mailSettings.port"
+                                type="number" />
                         </div>
                         <div class="mb-3">
                             <label for="setting-input-2" class="form-label">Username*</label>
-                            <input class="form-control" required autocomplete="off" v-model="mailSettings.username" type="email"/>
+                            <input class="form-control" required autocomplete="off" v-model="mailSettings.username"
+                                type="email" />
                         </div>
                         <div class="mb-3">
                             <label for="setting-input-2" class="form-label">Password*</label>
-                            <input class="form-control" required autocomplete="off" v-model="mailSettings.password" type="password"/>
+                            <input class="form-control" required autocomplete="off" v-model="mailSettings.password"
+                                type="password" />
                         </div>
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" value="" v-model="mailSettings.enableSsl">
@@ -34,12 +37,13 @@
                         </div>
                         <div class="mb-3">
                             <label for="setting-input-2" class="form-label">To Email</label>
-                            <input class="form-control" autocomplete="off" v-model="toEmail" type="email"/>
+                            <input class="form-control" autocomplete="off" v-model="toEmail" type="email" />
                         </div>
                         <div class="row">
                             <div class="col-auto mt-2">
-                                <button type="submit" class="btn app-btn-primary">Save Changes</button>&nbsp;
-                                <button type="button" class="btn app-btn-outline-primary" @click="onTest()">Test
+                                <button type="submit" value="save" class="btn app-btn-primary">Save
+                                    Changes</button>&nbsp;
+                                <button type="submit" value="test" class="btn app-btn-outline-primary">Test 
                                     Settings</button>
                             </div>
                             <div class="col-auto ms-auto mt-2">
@@ -76,12 +80,23 @@ export default {
         onSubmit() {
             emitter.emit("showLoader", true);
 
-            modifyMailerSetting({ settings: this.mailSettings }).then(r => {
-                emitter.emit("showLoader", false);
-            }, (err) => {
-                alert('Failed to update record.');
-                emitter.emit("showLoader", false);
-            });
+            const action = event.submitter.value;
+
+            if (action === 'save') {
+                modifyMailerSetting({ settings: this.mailSettings }).then(r => {
+                    emitter.emit("showLoader", false);
+                }, (err) => {
+                    alert('Failed to update record.');
+                    emitter.emit("showLoader", false);
+                });
+            } else if (action === 'test') {
+                if (!this.toEmail) {
+                    alert('Please enter a valid email address to send the test email.');
+                    emitter.emit("showLoader", false);
+                    return;
+                }
+                this.onTest();
+            }
         },
         onTest() {
             emitter.emit("showLoader", true);
@@ -93,8 +108,8 @@ export default {
                 alert('Failed to send test email. Please check your settings and try again.');
                 emitter.emit("showLoader", false);
             });
-         },
-         onDelete() {
+        },
+        onDelete() {
             if (confirm('Are you sure you want to delete this record?')) {
                 emitter.emit("showLoader", true);
                 deleteMailerSetting().then(r => {
